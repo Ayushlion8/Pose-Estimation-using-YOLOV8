@@ -10,7 +10,7 @@ model = project.version(1).model
 #Specify your video source, usually if you have only a webcam your source is 0 so cap = cv2.VideoCapture(0)
 # cap = cv2.VideoCapture(0)
 # Load video capture object
-cap = cv2.VideoCapture("production_id_5025965 (1080p).mp4")
+cap = cv2.VideoCapture("C:\\Users\\ag701\\Desktop\\YOLOV8_Pose_Detection\\Pose-Estimation-using-YOLOV8\\production_id_5025965 (1080p).mp4")
 # List to store keypoints from multiple frames
 keypoints_list = []
 

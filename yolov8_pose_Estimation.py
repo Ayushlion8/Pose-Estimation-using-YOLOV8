@@ -42,10 +42,10 @@ def analyze_action(prev_keypoints, current_keypoints):
 
   # Thresholds (adjust as needed based on your data)
   punch_threshold = 30  # Adjust for significant wrist movement in x-axis
-  jump_threshold = 20  # Adjust for vertical movement in knees and ankles
+  jump_threshold = 25  # Adjust for vertical movement in knees and ankles
   kick_threshold = 25  # Adjust for significant movement in one leg's ankle while the other remains still
   walk_threshold = 30
-  run_threshold = 50  # Adjust for alternating significant movement in knees and ankles
+  run_threshold = 80  # Adjust for alternating significant movement in knees and ankles
   stillness_threshold = 10  # Adjust for minimal movement
   
   
@@ -56,32 +56,29 @@ def analyze_action(prev_keypoints, current_keypoints):
   right_wrist_change_x = abs(current_keypoints[0][right_wrist_idx][0] - prev_keypoints[0][right_wrist_idx][0])
 
 #   is_likely_punching = (left_wrist_change_x > punch_threshold or right_wrist_change_x > punch_threshold) and (shoulder_change_jump <= stillness_threshold)
-  left_elbow_change_x = abs(current_keypoints[0][left_elbow_idx][0] - prev_keypoints[0][left_elbow_idx][0])
-  right_elbow_change_x = abs(current_keypoints[0][right_elbow_idx][0] - prev_keypoints[0][right_elbow_idx][0])
+#   left_elbow_change_x = abs(current_keypoints[0][left_elbow_idx][0] - prev_keypoints[0][left_elbow_idx][0])
+#   right_elbow_change_x = abs(current_keypoints[0][right_elbow_idx][0] - prev_keypoints[0][right_elbow_idx][0])
 
-  is_likely_punching = (
-    (left_wrist_change_x > punch_threshold or right_wrist_change_x > punch_threshold) and
-    (left_elbow_change_x > punch_threshold or right_elbow_change_x > punch_threshold) and
-    (shoulder_change_jump <= stillness_threshold)
-)
+  is_likely_punching =  (left_wrist_change_x > punch_threshold or right_wrist_change_x > punch_threshold) 
 
 
   
-  # Jumping detection
-#   shoulder_change_jump_y = abs(current_keypoints[0][left_shoulder_idx][1] - prev_keypoints[0][left_shoulder_idx][1]) + \
-#                         abs(current_keypoints[0][right_shoulder_idx][1] - prev_keypoints[0][right_shoulder_idx][1])
-#   shoulder_change_jump_x = abs(current_keypoints[0][left_shoulder_idx][0] - prev_keypoints[0][left_shoulder_idx][0]) + \
-#                         abs(current_keypoints[0][right_shoulder_idx][0] - prev_keypoints[0][right_shoulder_idx][0])
-#   knee_change_jump = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
-#                         abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
-#   ankle_change_jump = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
-#                         abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
+  # Jumping detection...
+  
+  shoulder_change_jump_y = abs(current_keypoints[0][left_shoulder_idx][1] - prev_keypoints[0][left_shoulder_idx][1]) + \
+                        abs(current_keypoints[0][right_shoulder_idx][1] - prev_keypoints[0][right_shoulder_idx][1])
+  shoulder_change_jump_x = abs(current_keypoints[0][left_shoulder_idx][0] - prev_keypoints[0][left_shoulder_idx][0]) + \
+                        abs(current_keypoints[0][right_shoulder_idx][0] - prev_keypoints[0][right_shoulder_idx][0])
+  knee_change_jump_y = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
+                        abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
+  ankle_change_jump_y = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
+                        abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
 
 
-  keypoint_changes = abs(current_keypoints - prev_keypoints)[:, 1:2]  # Extract y changes 
-  avg_velocity_y_jumping = torch.mean(keypoint_changes[:, 0])
+#   keypoint_changes = abs(current_keypoints - prev_keypoints)[:, 1:2]  # Extract y changes 
+#   avg_velocity_y_jumping = torch.mean(keypoint_changes[:, 0])
    
-  is_likely_jumping = avg_velocity_y_jumping > jump_threshold
+  is_likely_jumping = knee_change_jump_y > jump_threshold and ankle_change_jump_y > jump_threshold and shoulder_change_jump_y > jump_threshold 
 
 
 
@@ -97,34 +94,38 @@ def analyze_action(prev_keypoints, current_keypoints):
   
   
   
-  #Walking detection
-#   knee_change_run = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
-#                     abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
-#   ankle_change_run = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
-#                      abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
-                     
-  # Calculate absolute difference for each keypoint (assuming x and y at indices 0 and 1)
-  keypoint_changes = abs(current_keypoints - prev_keypoints)[:, :1]  # Extract x changes
-#   print(type(keypoint_changes))
-#   print(type(keypoint_changes[:, 0]))
+#   Walking and Running detection...
   
-  # Average absolute change in x and y
-  avg_velocity_x = torch.mean(keypoint_changes[:, 0])
-#   avg_velocity_y = torch.mean(keypoint_changes[:, 1])
+  knee_change_run = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
+                    abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
+  ankle_change_run = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
+                     abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
     
-  is_likely_walking_running = (avg_velocity_x > walk_threshold and avg_velocity_x < run_threshold)   
+  is_likely_walking = knee_change_run > walk_threshold or  ankle_change_run > walk_threshold
+    
+    
+#   # Calculate absolute difference for each keypoint (assuming x and y at indices 0 and 1)
+#   keypoint_changes = abs(current_keypoints - prev_keypoints)[:, :1]  # Extract x changes
+# #   print(type(keypoint_changes))
+# #   print(type(keypoint_changes[:, 0]))
+  
+#   # Average absolute change in x and y
+#   avg_velocity_x = torch.mean(keypoint_changes[:, 0])
+# #   avg_velocity_y = torch.mean(keypoint_changes[:, 1])
+    
+#   is_likely_walking_running = (avg_velocity_x > walk_threshold and avg_velocity_x < run_threshold)   
   
 
-#   # Running detection
-#   knee_change_run = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
-#                     abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
-#   ankle_change_run = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
-#                      abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
-#   is_likely_running = knee_change_run > run_threshold or ankle_change_run > run_threshold
+  # Running detection
+  knee_change_run = abs(current_keypoints[0][left_knee_idx][1] - prev_keypoints[0][left_knee_idx][1]) + \
+                    abs(current_keypoints[0][right_knee_idx][1] - prev_keypoints[0][right_knee_idx][1])
+  ankle_change_run = abs(current_keypoints[0][left_ankle_idx][1] - prev_keypoints[0][left_ankle_idx][1]) + \
+                     abs(current_keypoints[0][right_ankle_idx][1] - prev_keypoints[0][right_ankle_idx][1])
+  is_likely_running = knee_change_run > run_threshold or ankle_change_run > run_threshold
   
   
 
-  return is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking_running
+  return is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running
 
 
 
@@ -220,7 +221,7 @@ while True:
         current_keypoints = keypoints_list[-1]
         
         # print(current_keypoints[0][0][1])
-        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking_running = analyze_action(prev_keypoints, current_keypoints)
+        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running = analyze_action(prev_keypoints, current_keypoints)
         
         
         # Update running confidence based on analysis
@@ -268,12 +269,19 @@ while True:
         
         
         
-        if is_likely_walking_running:
+        if is_likely_walking:
             walking_confidence += 0.2  # Adjust confidence update as needed
         else:
-            running_confidence += 0.2
+            running_confidence -= 0.1
             
         walking_confidence = max(0, min(walking_confidence, 1))  # Keep confidence within 0-1
+        
+        
+        if is_likely_running:
+            running_confidence += 0.2
+        else:
+            running_confidence -= 0.1
+            
         running_confidence = max(0, min(running_confidence, 1))
         
         # Display prediction (consider adding bounding boxes or visualizations)
