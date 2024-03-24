@@ -10,7 +10,7 @@ model = project.version(1).model
 #Specify your video source, usually if you have only a webcam your source is 0 so cap = cv2.VideoCapture(0)
 # cap = cv2.VideoCapture(0)
 # Load video capture object
-cap = cv2.VideoCapture("production_id_5025965 (1080p).mp4")
+cap = cv2.VideoCapture("C:\\Users\\ag701\\Desktop\\YOLOV8_Pose_Detection\\Pose-Estimation-using-YOLOV8\\jumping1 (3).mp4")
 # List to store keypoints from multiple frames
 keypoints_list = []
 
@@ -45,8 +45,8 @@ while True:
     # print(keypoints_list)
 
     # Analyze consecutive frames
-    if len(keypoints_list) > 1:
-        prev_keypoints = keypoints_list[-2]
+    if len(keypoints_list) > 5:
+        prev_keypoints = keypoints_list[-5]
         current_keypoints = keypoints_list[-1]
         
         # print(current_keypoints[0][0][1])

@@ -47,6 +47,7 @@ def analyze_action(prev_keypoints, current_keypoints):
   walk_threshold = 30
   run_threshold = 80  # Adjust for alternating significant movement in knees and ankles
   stillness_threshold = 10  # Adjust for minimal movement
+  sleeping_threshold_y = 5
   
   
   # Punching detection
@@ -124,8 +125,18 @@ def analyze_action(prev_keypoints, current_keypoints):
   is_likely_running = knee_change_run > run_threshold or ankle_change_run > run_threshold
   
   
+  # Lying detection
+  
+  # Calculate absolute y-coordinate changes for each keypoint
+  y_changes = abs(current_keypoints[:, 1] - prev_keypoints[:, 1])
 
-  return is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running
+  # Check if all keypoint changes are below the threshold
+  is_likely_sleeping = torch.all(y_changes <= sleeping_threshold_y)
+  
+  
+  
+
+  return is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running, is_likely_sleeping
 
 
 
@@ -194,13 +205,14 @@ jumping_confidence = 0
 kicking_confidence = 0
 running_confidence = 0
 walking_confidence = 0
+sleeping_confidence = 0
 
 
-# Load video capture object
-cap = cv2.VideoCapture("C:\\Users\\ag701\\Desktop\\Machine Learning\\Annotated_images\\jumping1 (3).mp4")
+# # Load video capture object
+# cap = cv2.VideoCapture("C:\\Users\\ag701\\Desktop\\YOLOV8_Pose_Detection\\Pose-Estimation-using-YOLOV8\+\production_id_5025965 (1080p).mp4")
 
-# # Initialize webcam capture
-# cap = cv2.VideoCapture(0)  # Change to index for other cameras
+# Initialize webcam capture
+cap = cv2.VideoCapture(0)  # Change to index for other cameras
 
 
 # Loop through frames
@@ -221,7 +233,7 @@ while True:
         current_keypoints = keypoints_list[-1]
         
         # print(current_keypoints[0][0][1])
-        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running = analyze_action(prev_keypoints, current_keypoints)
+        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running, is_likely_sleeping = analyze_action(prev_keypoints, current_keypoints)
         
         
         # Update running confidence based on analysis
@@ -284,6 +296,14 @@ while True:
             
         running_confidence = max(0, min(running_confidence, 1))
         
+        
+        if is_likely_sleeping:
+          sleeping_confidence += 0.2
+        else:
+          sleeping_confidence -= 0.1
+          
+        sleeping_confidence = max(0, min(sleeping_confidence, 1))
+        
         # Display prediction (consider adding bounding boxes or visualizations)
         
         # print("Walking confidence:", walking_confidence)
@@ -304,7 +324,7 @@ while True:
         # cv2.imshow('Running Detection', frame)
             
             
-        maximum_confidence = max(punching_confidence, jumping_confidence, kicking_confidence, walking_confidence, running_confidence)
+        maximum_confidence = max(punching_confidence, jumping_confidence, kicking_confidence, walking_confidence, running_confidence, sleeping_confidence)
         
         if maximum_confidence == punching_confidence:
             print('Punch Detected: ', punching_confidence)
@@ -329,10 +349,15 @@ while True:
             maximum_conf_action = 'walking'
             
             
-        else:
+        elif maximum_confidence == running_confidence:
             print('Running Detected: ', running_confidence)
             # cv2.imshow('Running Detection', frame)
             maximum_conf_action = 'running'
+            
+        else:
+          print('Sleeping Detected: ', sleeping_confidence)
+          maximum_conf_action = 'sleeping'
+          
             
             
             
