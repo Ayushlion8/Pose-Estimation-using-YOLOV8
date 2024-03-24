@@ -10,7 +10,7 @@ model = project.version(1).model
 #Specify your video source, usually if you have only a webcam your source is 0 so cap = cv2.VideoCapture(0)
 # cap = cv2.VideoCapture(0)
 # Load video capture object
-cap = cv2.VideoCapture("C:\\Users\\ag701\\Desktop\\YOLOV8_Pose_Detection\\Pose-Estimation-using-YOLOV8\\production_id_5025965 (1080p).mp4")
+cap = cv2.VideoCapture("production_id_5025965 (1080p).mp4")
 # List to store keypoints from multiple frames
 keypoints_list = []
 
@@ -37,7 +37,8 @@ while True:
         
         cv2.putText(frame, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-     # Process frame and get keypoints
+
+    # Process frame and get keypoints
     keypoints = process_frame(frame)
     keypoints_list.append(keypoints)
     
@@ -49,7 +50,7 @@ while True:
         current_keypoints = keypoints_list[-1]
         
         # print(current_keypoints[0][0][1])
-        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking_running = analyze_action(prev_keypoints, current_keypoints)
+        is_likely_punching, is_likely_jumping, is_likely_kicking, is_likely_walking, is_likely_running = analyze_action(prev_keypoints, current_keypoints)
         
         
         # Update running confidence based on analysis
@@ -97,12 +98,19 @@ while True:
         
         
         
-        if is_likely_walking_running:
+        if is_likely_walking:
             walking_confidence += 0.2  # Adjust confidence update as needed
         else:
-            running_confidence += 0.2
+            running_confidence -= 0.1
             
         walking_confidence = max(0, min(walking_confidence, 1))  # Keep confidence within 0-1
+        
+        
+        if is_likely_running:
+            running_confidence += 0.2
+        else:
+            running_confidence -= 0.1
+            
         running_confidence = max(0, min(running_confidence, 1))
         
         # Display prediction (consider adding bounding boxes or visualizations)
@@ -161,9 +169,6 @@ while True:
         frame = draw_bounding_box(frame, current_keypoints)
         frame = display_action_label(frame, maximum_conf_action, maximum_confidence)
         
-        
-        # Display the frame with bounding box and action label
-        # cv2.imshow('Action Detection', frame)
             
     # Show screen with your predictions
     cv2.imshow("Roboflow realtime detection", frame)
